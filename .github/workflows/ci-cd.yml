@@ -17,6 +17,7 @@ permissions:
   contents: read
   security-events: write
   actions: read
+  packages: write
 
 concurrency:
   group: postify-${{ github.workflow }}-${{ github.ref }}
@@ -286,10 +287,11 @@ jobs:
       - name: Wait for staging services
         run: |
           for i in {1..30}; do
-            if curl -fsS http://localhost:5000/healthz \
-              && curl -fsS http://localhost:5000/metrics \
-              && curl -fsS http://localhost:9090/-/ready \
-              && curl -fsS http://localhost:3001/api/health; then
+            if curl -fsS http://127.0.0.1:5000/healthz \
+              && curl -fsS http://127.0.0.1:5000/metrics \
+              && curl -fsS http://127.0.0.1:3000 \
+              && curl -fsS http://127.0.0.1:9090/-/ready \
+              && curl -fsS http://127.0.0.1:3001/api/health; then
               exit 0
             fi
             docker compose ps
@@ -301,12 +303,37 @@ jobs:
       - name: Staging smoke check
         run: |
           docker compose exec -T db sh -c 'mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT COUNT(*) FROM posts;"'
-          curl -fsS http://localhost:5000/healthz
-          curl -fsS http://localhost:5000/api/post | grep 'Posts fetched successfully'
-          curl -fsS http://localhost:3000 | grep '<div id="root"></div>'
-          curl -fsS http://localhost:5000/metrics | grep postify_backend_info
-          curl -fsS http://localhost:9090/api/v1/targets | grep postify-backend
-          curl -fsS http://localhost:3001/api/health | grep ok
+          curl -fsS http://127.0.0.1:5000/healthz
+          curl -fsS http://127.0.0.1:5000/api/post | grep 'Posts fetched successfully'
+          curl -fsS http://127.0.0.1:3000 | grep '<div id="root"></div>'
+          curl -fsS http://127.0.0.1:5000/metrics | grep postify_backend_info
+          curl -fsS http://127.0.0.1:9090/api/v1/targets | grep postify-backend
+          curl -fsS http://127.0.0.1:3001/api/health | grep ok
+
+      - name: Login to GitHub Container Registry
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push staging images to GitHub Container Registry
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          OWNER="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          BACKEND_GHCR="ghcr.io/${OWNER}/postify-backend"
+          FRONTEND_GHCR="ghcr.io/${OWNER}/postify-frontend"
+
+          docker tag "$BACKEND_IMAGE" "$BACKEND_GHCR:latest"
+          docker tag "$BACKEND_IMAGE" "$BACKEND_GHCR:${GITHUB_SHA}"
+          docker tag "$FRONTEND_IMAGE" "$FRONTEND_GHCR:latest"
+          docker tag "$FRONTEND_IMAGE" "$FRONTEND_GHCR:${GITHUB_SHA}"
+
+          docker push "$BACKEND_GHCR:latest"
+          docker push "$BACKEND_GHCR:${GITHUB_SHA}"
+          docker push "$FRONTEND_GHCR:latest"
+          docker push "$FRONTEND_GHCR:${GITHUB_SHA}"
 
       - name: Capture staging logs
         if: always()
