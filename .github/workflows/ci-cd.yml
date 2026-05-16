@@ -274,11 +274,17 @@ jobs:
           cat > .env <<'EOF'
           SERVER_PORT=${{ vars.SERVER_PORT || '5000' }}
           DB_HOST=${{ vars.DB_HOST || 'db' }}
-          DB_USER=${{ vars.DB_USER || 'root' }}
+          DB_USER=${{ vars.DB_USER || 'bloguser' }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD || vars.DB_PASSWORD || 'postify_staging_password' }}
           DB_DATABASE=${{ vars.DB_DATABASE || 'blog' }}
-          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD || vars.MYSQL_ROOT_PASSWORD || secrets.DB_PASSWORD || vars.DB_PASSWORD || 'postify_staging_password' }}
-          MYSQL_DATABASE=${{ vars.MYSQL_DATABASE || vars.DB_DATABASE || 'blog' }}
+          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD || vars.MYSQL_ROOT_PASSWORD || secrets.MARIADB_ROOT_PASSWORD || vars.MARIADB_ROOT_PASSWORD || secrets.DB_PASSWORD || vars.DB_PASSWORD || 'postify_staging_password' }}
+          MYSQL_DATABASE=${{ vars.MYSQL_DATABASE || vars.MARIADB_DATABASE || vars.DB_DATABASE || 'blog' }}
+          MYSQL_USER=${{ vars.MYSQL_USER || vars.MARIADB_USER || vars.DB_USER || 'bloguser' }}
+          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD || vars.MYSQL_PASSWORD || secrets.MARIADB_PASSWORD || vars.MARIADB_PASSWORD || secrets.DB_PASSWORD || vars.DB_PASSWORD || 'postify_staging_password' }}
+          MARIADB_ROOT_PASSWORD=${{ secrets.MARIADB_ROOT_PASSWORD || vars.MARIADB_ROOT_PASSWORD || secrets.MYSQL_ROOT_PASSWORD || vars.MYSQL_ROOT_PASSWORD || secrets.DB_PASSWORD || vars.DB_PASSWORD || 'postify_staging_password' }}
+          MARIADB_DATABASE=${{ vars.MARIADB_DATABASE || vars.MYSQL_DATABASE || vars.DB_DATABASE || 'blog' }}
+          MARIADB_USER=${{ vars.MARIADB_USER || vars.MYSQL_USER || vars.DB_USER || 'bloguser' }}
+          MARIADB_PASSWORD=${{ secrets.MARIADB_PASSWORD || vars.MARIADB_PASSWORD || secrets.MYSQL_PASSWORD || vars.MYSQL_PASSWORD || secrets.DB_PASSWORD || vars.DB_PASSWORD || 'postify_staging_password' }}
           JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY || vars.JWT_SECRET_KEY || 'staging-ci-secret' }}
           EOF
 
@@ -323,9 +329,14 @@ jobs:
 
       - name: Staging smoke check
         run: |
-          docker compose exec -T db sh -c 'mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT COUNT(*) FROM posts;"'
+          docker compose exec -T db sh -c 'mariadb -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -e "SELECT COUNT(*) FROM posts;"'
           curl -fsS http://127.0.0.1:5000/healthz
-          curl -fsS http://127.0.0.1:5000/api/post | grep 'Posts fetched successfully'
+          api_response="$(curl -fsS http://127.0.0.1:5000/api/post || true)"
+          if ! printf '%s' "$api_response" | grep 'Posts fetched successfully'; then
+            printf '%s\n' "$api_response"
+            docker compose logs --tail=100 backend
+            exit 1
+          fi
           curl -fsS http://127.0.0.1:3000 | grep '<div id="root"></div>'
           curl -fsS http://127.0.0.1:5000/metrics | grep postify_backend_info
           curl -fsS http://127.0.0.1:9090/api/v1/targets | grep postify-backend

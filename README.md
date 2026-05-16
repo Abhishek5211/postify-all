@@ -79,9 +79,11 @@ the staging job. At minimum configure:
 
 ```markdown
 DB_HOST=db
-DB_USER=root
+DB_USER=bloguser
 DB_PASSWORD=<database-password>
 DB_DATABASE=blog
+MARIADB_USER=bloguser
+MARIADB_PASSWORD=<database-password>
 MYSQL_ROOT_PASSWORD=<same-as-DB_PASSWORD-or-your-root-password>
 MYSQL_DATABASE=blog
 JWT_SECRET_KEY=<long-random-secret>
