@@ -302,6 +302,11 @@ jobs:
 
             echo "backend_health=$backend_health backend_metrics=$backend_metrics frontend=$frontend prometheus=$prometheus grafana=$grafana"
 
+            if [ "$frontend" -ne 0 ]; then
+              docker compose ps frontend
+              docker compose logs --tail=50 frontend
+            fi
+
             if [ "$backend_health" -eq 0 ] \
               && [ "$backend_metrics" -eq 0 ] \
               && [ "$frontend" -eq 0 ] \
