@@ -39,12 +39,16 @@ spec:
           mountPath: /var/run
         - name: nginx-logs
           mountPath: /var/log/nginx
+        - name: nginx-tmp
+          mountPath: /tmp
       volumes:
       - name: nginx-cache
         emptyDir: {}
       - name: nginx-run
         emptyDir: {}
       - name: nginx-logs
+        emptyDir: {}
+      - name: nginx-tmp
         emptyDir: {}
 ---
 apiVersion: v1

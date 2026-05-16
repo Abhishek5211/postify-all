@@ -1,0 +1,81 @@
+services:
+  frontend:
+    image: ghcr.io/${GHCR_OWNER}/postify-frontend:${IMAGE_TAG:-latest}
+    container_name: postify-frontend
+    ports:
+      - "3000:8080"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    image: ghcr.io/${GHCR_OWNER}/postify-backend:${IMAGE_TAG:-latest}
+    container_name: postify-backend
+    env_file:
+      - .env.prod
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    networks:
+      default:
+        aliases:
+          - backend-service
+    restart: unless-stopped
+
+  db:
+    image: mariadb:10.11
+    container_name: postify-db
+    env_file:
+      - .env.prod
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - prod_db_data:/var/lib/mysql
+    restart: unless-stopped
+
+  frontend-metrics:
+    image: nginx/nginx-prometheus-exporter:1.1.0
+    container_name: postify-frontend-metrics
+    command:
+      - "-nginx.scrape-uri=http://frontend:8080/nginx_status"
+    ports:
+      - "9113:9113"
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    container_name: postify-prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - backend
+      - frontend-metrics
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: postify-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - prod_grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  prod_db_data:
+  prod_grafana_data:
