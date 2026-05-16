@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 
 function BlogCard({ postId, username, title, snippet, date, commentCount }) {

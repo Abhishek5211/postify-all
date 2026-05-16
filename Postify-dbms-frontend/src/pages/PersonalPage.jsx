@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ProfileNavBar from "../components/ProfileNavBar/ProfileNavBar";
 import UserBlogCard from "../components/UserBlogCard/UserBlogCard";
 import { useSelector } from "react-redux";
@@ -25,7 +25,7 @@ function PersonalPage() {
     }
   };
 
-  const fetchPostByUser = async (userId) => {
+  const fetchPostByUser = useCallback(async (userId) => {
     try {
       const res = await fetch(`/api/post/user/${userId}`);
       if (!res.ok) console.log("Error in Backend");
@@ -42,11 +42,11 @@ function PersonalPage() {
     } catch (e) {
       console.log("Error occured during fetching" + e.message);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPostByUser(currentUser.id);
-  }, []);
+  }, [currentUser.id, fetchPostByUser]);
 
   return (
     <div className="flex justify-start min-h-screen mx-96 flex-col">

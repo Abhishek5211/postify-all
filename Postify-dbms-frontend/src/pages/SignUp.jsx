@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-import SignIn from "./SignIn";
 import { useState } from "react";
 
 export default function SignUp() {

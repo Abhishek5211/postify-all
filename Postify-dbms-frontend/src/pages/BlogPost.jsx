@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CommentSection from "../components/Comment/CommentSection";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
@@ -20,7 +20,7 @@ const BlogPost = () => {
 
   const [comments, setComments] = useState(0);
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const blogId = params.blogId;
       const res = await fetch(`/api/comment/${blogId}`);
@@ -32,9 +32,9 @@ const BlogPost = () => {
     } catch (e) {
       throw console.log(e);
     }
-  };
+  }, [params.blogId]);
 
-  const handleCommentSubmit = async (comment) => {
+  const handleCommentSubmit = useCallback(async (comment) => {
     // Handle comment submission logic here
     try {
       const formData = {
@@ -57,9 +57,9 @@ const BlogPost = () => {
        toast.error(e.message);
       navigate('/signin');
     }
-  };
+  }, [fetchComments, navigate, params.blogId]);
 
-  const fetchListing = async () => {
+  const fetchListing = useCallback(async () => {
     try {
       const blogId = params.blogId;
       const res = await fetch(`/api/post/${blogId}`);
@@ -77,11 +77,11 @@ const BlogPost = () => {
     } catch (err) {
       toast.error(err.message);
     }
-  };
+  }, [params.blogId]);
   useEffect(() => {
     fetchListing();
     fetchComments();
-  }, []);
+  }, [fetchComments, fetchListing]);
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen flex justify-center">
@@ -131,7 +131,6 @@ const BlogPost = () => {
         <div className="border-t pt-4 mt-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-800">{totalComments} Comments</h2>
           <CommentSection
-            postId={params.postId}
             handleCommentSubmit={handleCommentSubmit}
           />
           {comments && comments.length > 0 ? (

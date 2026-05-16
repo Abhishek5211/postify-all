@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
-const CommentSection = ({postId, handleCommentSubmit }) => {
+const CommentSection = ({ handleCommentSubmit }) => {
   const [comment, setComment] = useState("");
 
   const handleCommentChange = (e) => {

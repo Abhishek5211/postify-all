@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import React, { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   updateUserFailure,
   updateUserSuccess,
@@ -14,14 +14,13 @@ import {
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Profile() {
   const { user } = useSelector((state) => state.user);
   const { currentUser, loading, error } = user;
   const [formData, setFormData] = useState({});
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const handleDeleteAccount = async () => {
     try {

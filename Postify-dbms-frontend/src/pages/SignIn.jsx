@@ -13,7 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 export default function SignIn() {
   const [formData, setFormData] = useState({});
   const { user } = useSelector((state) => state.user);
-  const { currentUser, loading } = user;
+  const { loading } = user;
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -125,7 +125,7 @@ export default function SignIn() {
         </button>
       </form>
       <div className="flex gap-3 mt-3">
-        <p>Don't have an account?</p>
+        <p>Don&apos;t have an account?</p>
         <Link to="/signup" className="text-blue-700">
           Sign Up
         </Link>

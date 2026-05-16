@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,7 +11,7 @@ const EditBlog = () => {
   const params = useParams();
   const navigate = useNavigate();
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await fetch("/api/category");
       if (res.ok) {
@@ -21,9 +21,9 @@ const EditBlog = () => {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
-  const fetchBlog = async () => {
+  const fetchBlog = useCallback(async () => {
     try {
       const blogId = params.blogId;
       const res = await fetch(`/api/post/${blogId}`);
@@ -44,7 +44,7 @@ const EditBlog = () => {
     } catch (e) {
       throw console.error(e);
     }
-  };
+  }, [params.blogId]);
 
   const handleSelect = (categoryId) => {
     console.log(categoryId);
@@ -59,7 +59,7 @@ const EditBlog = () => {
   useEffect(() => {
     fetchCategories();
     fetchBlog();
-  }, []);
+  }, [fetchBlog, fetchCategories]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

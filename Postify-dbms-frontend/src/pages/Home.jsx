@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import Category from "../components/Category/Category";
 import BlogCard from "../components/BlogCard/BlogCard";
 import { format } from "date-fns";
@@ -9,7 +9,7 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       if (
         selectedCategory === null ||
@@ -43,10 +43,10 @@ export default function Home() {
     } catch (e) {
       console.log("Error occured during fetching" + e.message);
     }
-  };
+  }, [selectedCategory]);
   useEffect(() => {
     fetchPost();
-  }, [selectedCategory]);
+  }, [fetchPost]);
 
   return (
     <div className="bg-white">

@@ -11,14 +11,6 @@ function UserBlogCard({
   commentCount,
   handleDelete,
 }) {
-  UserBlogCard.propTypes = {
-    postId: PropTypes.number.isRequired,
-    username: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    snippet: PropTypes.string,
-    commentCount: PropTypes.number,
-  };
-
   const navigate = useNavigate();
 
   const handleEdit = async (e,postId) => {
@@ -63,5 +55,14 @@ function UserBlogCard({
     </div>
   );
 }
+
+UserBlogCard.propTypes = {
+  postId: PropTypes.number.isRequired,
+  username: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  snippet: PropTypes.string,
+  commentCount: PropTypes.number,
+  handleDelete: PropTypes.func.isRequired,
+};
 
 export default UserBlogCard;
