@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { IoMdCheckmark } from "react-icons/io";
-import { CategoryContext } from "../../pages/Home";
+import { CategoryContext } from "../../context/CategoryContext";
 
 const Category = () => {
   const { selectedCategory, setSelectedCategory } = useContext(CategoryContext);

@@ -1,9 +1,8 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Category from "../components/Category/Category";
 import BlogCard from "../components/BlogCard/BlogCard";
 import { format } from "date-fns";
-
-export const CategoryContext = createContext();
+import { CategoryContext } from "../context/CategoryContext";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
