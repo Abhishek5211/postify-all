@@ -78,10 +78,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: Postify-dbms-frontend/package-lock.json
+          cache-dependency-path: Postify-dbms-frontend/package.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Lint frontend
         run: npm run lint
