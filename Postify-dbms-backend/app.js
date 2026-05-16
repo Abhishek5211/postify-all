@@ -11,7 +11,11 @@ import {
 } from "./middlewares/metrics.middleware.js";
 
 const app = express();
-const allowedOrigins = ["https://localhost:3000", "http://localhost:80"];
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://localhost:3000",
+  "http://localhost:80",
+];
 
 app.use(
   cors({

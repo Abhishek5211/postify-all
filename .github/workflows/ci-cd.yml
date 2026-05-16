@@ -300,7 +300,10 @@ jobs:
 
       - name: Staging smoke check
         run: |
+          docker compose exec -T db sh -c 'mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT COUNT(*) FROM posts;"'
           curl -fsS http://localhost:5000/healthz
+          curl -fsS http://localhost:5000/api/post | grep 'Posts fetched successfully'
+          curl -fsS http://localhost:3000 | grep '<div id="root"></div>'
           curl -fsS http://localhost:5000/metrics | grep postify_backend_info
           curl -fsS http://localhost:9090/api/v1/targets | grep postify-backend
           curl -fsS http://localhost:3001/api/health | grep ok
