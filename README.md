@@ -71,6 +71,25 @@ Prometheus: http://localhost:9090
 Grafana: http://localhost:3001
 ```
 
+The frontend container listens on port `8080` internally, and Docker publishes it on host port `3000`.
+So the browser URL is `http://<server-ip>:3000`, while Compose-to-container checks use `frontend:8080`.
+
+For GitHub Actions, environment variables added under the GitHub Environment named `env` are available to
+the staging job. At minimum configure:
+
+```markdown
+DB_HOST=db
+DB_USER=root
+DB_PASSWORD=<database-password>
+DB_DATABASE=blog
+MYSQL_ROOT_PASSWORD=<same-as-DB_PASSWORD-or-your-root-password>
+MYSQL_DATABASE=blog
+JWT_SECRET_KEY=<long-random-secret>
+```
+
+`DB_PASSWORD`, `MYSQL_ROOT_PASSWORD`, and `JWT_SECRET_KEY` are better stored as GitHub Environment secrets
+instead of variables.
+
 Stop the production stack:
 
 ```bash

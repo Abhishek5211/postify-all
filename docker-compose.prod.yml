@@ -11,8 +11,13 @@ services:
   backend:
     image: ghcr.io/${GHCR_OWNER}/postify-backend:${IMAGE_TAG:-latest}
     container_name: postify-backend
-    env_file:
-      - .env.prod
+    environment:
+      SERVER_PORT: ${SERVER_PORT:-5000}
+      DB_HOST: ${DB_HOST:-db}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE:-blog}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     ports:
       - "5000:5000"
     depends_on:
@@ -26,8 +31,9 @@ services:
   db:
     image: mariadb:10.11
     container_name: postify-db
-    env_file:
-      - .env.prod
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-${DB_PASSWORD}}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-${DB_DATABASE:-blog}}
     ports:
       - "3306:3306"
     volumes:
