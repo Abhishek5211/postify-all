@@ -5,7 +5,7 @@ services:
       context: ./Postify-dbms-frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "3000:8080"
     depends_on:
       - backend
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
     image: nginx/nginx-prometheus-exporter:1.1.0
     container_name: frontend-metrics
     command:
-      - "-nginx.scrape-uri=http://frontend/nginx_status"
+      - "-nginx.scrape-uri=http://frontend:8080/nginx_status"
     ports:
       - "9113:9113"
     depends_on:

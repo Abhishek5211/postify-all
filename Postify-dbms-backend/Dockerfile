@@ -18,7 +18,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Create a non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN addgroup -g 10001 -S appgroup && adduser -u 10001 -S appuser -G appgroup
 
 # Copy dependencies from builder
 COPY --from=builder /app/node_modules ./node_modules
@@ -31,7 +31,7 @@ ENV NODE_ENV=production
 EXPOSE 5000
 
 # Switch to non-root user
-USER appuser
+USER 10001
 
 # Start the server
 CMD ["npm", "start"]

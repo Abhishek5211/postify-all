@@ -15,9 +15,22 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3306"
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: mariadb
         image: mariadb:10.11
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         ports:
         - containerPort: 3306
           name: mysql
@@ -48,6 +61,10 @@ spec:
           mountPath: /var/lib/mysql
         - name: init-sql-script
           mountPath: /docker-entrypoint-initdb.d
+        - name: mariadb-run
+          mountPath: /run/mysqld
+        - name: mariadb-tmp
+          mountPath: /tmp
       volumes:
       - name: mariadb-storage
         persistentVolumeClaim:
@@ -55,6 +72,10 @@ spec:
       - name: init-sql-script
         configMap:
           name: db-init-conf
+      - name: mariadb-run
+        emptyDir: {}
+      - name: mariadb-tmp
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
