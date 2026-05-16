@@ -21,6 +21,10 @@ services:
       - "5000:5000"
     depends_on:
       - db
+    networks:
+      default:
+        aliases:
+          - backend-service
     restart: unless-stopped
 
   db:
@@ -35,8 +39,50 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - db_data:/var/lib/mysql
 
+  frontend-metrics:
+    image: nginx/nginx-prometheus-exporter:1.1.0
+    container_name: frontend-metrics
+    command:
+      - "-nginx.scrape-uri=http://frontend/nginx_status"
+    ports:
+      - "9113:9113"
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - backend
+      - frontend-metrics
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
 volumes:
   db_data:
+  grafana_data:
 
 
 

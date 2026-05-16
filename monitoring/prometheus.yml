@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: postify-backend
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - backend:5000
+
+  - job_name: postify-frontend-nginx
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - frontend-metrics:9113
