@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: postify-alert-rules
+  namespace: monitoring
+  labels:
+    release: monitor-stack # <-- CRITICAL: This must match your Helm release name
+spec:
+  groups:
+  - name: postify.rules3
+    rules:
+    - alert: PostifyPodCrashLooping
+      expr: rate(kube_pod_container_status_restarts_total{namespace="default"}[5m]) > 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Postify container restart loop detected."
+    - alert: PostifyDeploymentOffline
+      expr: kube_deployment_status_replicas_available{namespace="default"} == 0
+      for: 1m
+      labels:
+        severity: page
+      annotations:
+        summary: "Postify application layer deployment reports zero available replicas."

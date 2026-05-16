@@ -1,0 +1,18 @@
+- name: Deploy Postify Application to Kubernetes Cluster
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+  - name: Generate and Apply Kubernetes ConfigMap from Source SQL
+    ansible.builtin.shell: |
+      kubectl create configmap db-init-conf --from-file=../init.sql --dry-run=client -o yaml | kubectl apply -f - --validate=false
+
+  - name: Orchestrate Core Kubernetes Resource Components
+    ansible.builtin.shell: "kubectl apply -f ../kube/{{ item }} --validate=false"
+    loop:
+    - db-credentials.yaml
+    - mariadb-pvc.yaml
+    - mariadb-deployment.yaml
+    - backend-deployment.yaml
+    - frontend-deployment.yaml
