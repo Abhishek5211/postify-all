@@ -30,7 +30,7 @@ ghcr.io/<your-github-owner>/postify-backend:latest
 ghcr.io/<your-github-owner>/postify-frontend:latest
 ```
 
-Create a local production env file:
+Create a production env file on the deployment machine:
 
 ```bash
 cp .env.prod.example .env.prod
@@ -49,11 +49,22 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml pull
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
 ```
 
+Production Compose uses `.env.prod` in two ways:
+
+```markdown
+--env-file .env.prod       loads values for Compose interpolation, such as GHCR_OWNER and IMAGE_TAG
+env_file: .env.prod        injects runtime values into backend, db, and Grafana containers
+```
+
+GitHub Environment variables are not automatically available on your deployment server. If you deploy from
+GitHub Actions, the workflow must write those values to `.env.prod` on the server before running
+`docker compose --env-file .env.prod -f docker-compose.prod.yml up -d`.
+
 Smoke test the running stack:
 
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml ps
-docker compose --env-file .env.prod -f docker-compose.prod.yml exec -T db sh -c 'mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT COUNT(*) FROM posts;"'
+docker compose --env-file .env.prod -f docker-compose.prod.yml exec -T db sh -c 'mariadb -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE" -e "SELECT COUNT(*) FROM posts;"'
 curl -fsS http://127.0.0.1:5000/healthz
 curl -fsS http://127.0.0.1:5000/api/post
 curl -fsS http://127.0.0.1:3000
@@ -75,21 +86,25 @@ The frontend container listens on port `8080` internally, and Docker publishes i
 So the browser URL is `http://<server-ip>:3000`, while Compose-to-container checks use `frontend:8080`.
 
 For GitHub Actions, environment variables added under the GitHub Environment named `env` are available to
-the staging job. At minimum configure:
+the staging job. For production, write the same values into `.env.prod` on the deployment server. At minimum configure:
 
 ```markdown
 DB_HOST=db
 DB_USER=bloguser
 DB_PASSWORD=<database-password>
 DB_DATABASE=blog
+MARIADB_ROOT_PASSWORD=<root-password>
+MARIADB_DATABASE=blog
 MARIADB_USER=bloguser
 MARIADB_PASSWORD=<database-password>
-MYSQL_ROOT_PASSWORD=<same-as-DB_PASSWORD-or-your-root-password>
+MYSQL_ROOT_PASSWORD=<root-password>
 MYSQL_DATABASE=blog
+MYSQL_USER=bloguser
+MYSQL_PASSWORD=<database-password>
 JWT_SECRET_KEY=<long-random-secret>
 ```
 
-`DB_PASSWORD`, `MYSQL_ROOT_PASSWORD`, and `JWT_SECRET_KEY` are better stored as GitHub Environment secrets
+`DB_PASSWORD`, `MARIADB_ROOT_PASSWORD`, `MARIADB_PASSWORD`, and `JWT_SECRET_KEY` are better stored as GitHub Environment secrets
 instead of variables.
 
 Stop the production stack:
