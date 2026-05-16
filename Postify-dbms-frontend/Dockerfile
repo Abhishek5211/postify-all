@@ -19,4 +19,4 @@ RUN chown -R nginx:nginx /usr/share/nginx/html /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
 USER 101
-CMD ["nginx", "-g", "pid /tmp/nginx.pid; daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]
